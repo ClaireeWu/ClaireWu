@@ -1,0 +1,126 @@
+---
+title: "Reaction Time Study Data Analysis"
+author: "Ze Qian Wu (1002192254)"
+date: "October 23, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+rtdata <- read.csv("/Users/Claire/Desktop/RTcleaneddata.csv")
+attach(rtdata)
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(lme4)
+library(lmerTest)
+library(tidyverse)
+library(corrplot)
+library(gridExtra)
+library(imputeTS)
+
+```
+RQ:What is the diurnal pattern of reaction time?
+
+To explore the research question based on the data we acquired, a physiological approach is taken in this data analysis to analyze the diurnal pattern. Instead of focusing on the exact clock time, we are looking at the same biological clock among all individuals. Four times of a day is used to represent the exact clock time and we are using this time variable to examine the relationship with a person's reaction time. Considering there are random errors in between the individuals, the models that are used in this data analysis are only concerned about the within-group differences. Reaction time differences between individuals are ignored and we are mainly interested in how a person's reaction time varies throughout the day.
+
+
+```{r, echo=FALSE, include=FALSE}
+nonaatall <-na.omit(rtdata)
+summary(nonaatall)
+rt <- nonaatall$Reaction.Time
+day <- nonaatall$Time.of.Day
+id <- nonaatall$Student.ID
+bl<- nonaatall$Busy.1..Light.0.
+mm <-nonaatall$Measurement
+ft <-nonaatall$Fatigued.or.not
+hg <-nonaatall$Hungry.or.not
+st <-nonaatall$Stimulant
+ill <-nonaatall$Ill
+hour <-nonaatall$Hours.of.Sleep
+protocol <-nonaatall$Followed.Protocol
+meq<- nonaatall$MEQ
+nonartdata <-rtdata[!is.na(rtdata$Reaction.Time),]
+```
+
+```{r}
+lmmodel <- lmer(rt ~ day +bl+hour+meq+ft+hg+st+ill+protocol+ (1|id),
+                data=rtdata, REML=FALSE)
+summary(lmmodel)
+lmmodel_null <- lmer(rt ~ day+ (1|id), data=rtdata, REML=FALSE)
+summary(lmmodel_null)
+```
+
+With all the variables we obtained from raw data, a linear mixed model is used to examine the within-group differences instead of between-group differences. Student ID is the only random variable we have and all the other ones are fixed variables. Due to the fact that measurement is very similar to the time of day and it does not contribute much to the output of the mixed model, we are ignoring this variable in the linear mixed model.
+
+The full and reduced linear mixed model present that there is no significant correlation between any of the variables. However, we noticed that there are significant codes beside three variables: fatigue, ill and protocol. These three variables seemed to have a significant effect on the model, and therefore we are interested in how they are significant and their correlation with reation time and time of day.
+
+Before we move on to the mixed models of significant variables, we need to check the assumptions of the full and reduced model. Normality, homoscedasticity and correlation will be inspected with relevant tests and models.
+```{r}
+qqnorm(resid(lmmodel), main = "Normality of the Residuals")
+qqline(resid(lmmodel))
+shapiro.test(resid(lmmodel))
+qqnorm(resid(lmmodel_null), main = "Normality of the Residuals")
+qqline(resid(lmmodel_null))
+shapiro.test(resid(lmmodel_null))
+
+```
+
+To check if the residuals are normal, a qq-plot is used to see if all the points lie in a straight line. From the graphs above, we can observe that many points in both plots are either above or below the qq-line. Since the points do not lie in a straight line, we can conclude that the residuals are not normal. A Shapiro test is also used to further check the normality of the residuals. The value of W is significantly greater than the p-value and the p-value =1.46e-07,2.929e-10 are a lot smaller than the significance level. Therefore, the assumption of normality is rejected by the Shapiro test.
+```{r}
+plot(lmmodel, which=1, main="Homoscedasticity of Residuals", 
+     xlab="Reaction Time", ylab="Residuals")
+plot(lmmodel_null, which=1, main="Homoscedasticity of Residuals", 
+     xlab="Reaction Time", ylab="Residuals")
+
+```
+
+By looking at the scattered plot of homoscedasticity of residuals, we can perceive that most of the points are randomly scattered between the range of 0.3-0.5 with a few extreme points near 0.7. The pattern of the scattered residuals does not show any trend and the residuals scattered randomly around zero, therefore we can conclude that the assumption of constant variance is satisfied for both full and reduced model.
+
+```{r}
+matrix <-cor(nonaatall[-c(1,2,4,5,11)],use="complete.obs")
+
+corrplot1 =corrplot((matrix),method="circle", order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+
+corrplot2 =corrplot((matrix),method="number", order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+
+```
+
+The two heat maps aid us to visualiz the variables' correlation between each other. According to the maps, no significant correlation was found between any set of variables, therefore we can conclude that there exists no correlation between the variables. The absolute values of all the Pearson's Correlation Coefficient are closer to 0 than 1, which also suggests that there is no evidence holds that there exists any correlation.
+```{r}
+anova(lmmodel, lmmodel_null)
+```
+
+By reading the p-value, we can see that the full linear mixed model is significant. Too see which variable has the most significant effect and which linear mixed models are the best fit for the data, we can build a few more models based on the result we obtained from the summary of the full model.
+
+```{r}
+lmm1 <- lmer(rt ~ day +ft+ (1|id),
+             data=rtdata, REML=FALSE)
+summary(lmm1)
+lmm2 <- lmer(rt ~ day+ft+ill+ (1|id),
+             data=rtdata, REML=FALSE)
+summary(lmm2)
+lmm3 <- lmer(rt~day+ft+ill+protocol+(1|id),
+             data=rtdata, REML=FALSE)
+anova(lmm1,lmm2)
+anova(lmm1,lmm3)
+anova(lmm2,lmm3)
+
+```
+
+From the summary tables and anova tables above, we can conclude that the three variables are significant and have significant impacts to the reaction time. Fatigue is supported by evidence that it is the most significant variable comparing to the other ones, as well as ill and protocol are also significant. However, since protocol is a factor that indicates if an individual has followed all the protocol or not, it is questionable if it has an impact to the individuals' performances.
+
+Note: Data imputation can also help this dataset to deal with missing values. I will impute the dataset to compare the differences between the original dataset with NAs and the dataset with all NAs replaced with column mean if it is needed for the final report.
+
+
+
+
+
+

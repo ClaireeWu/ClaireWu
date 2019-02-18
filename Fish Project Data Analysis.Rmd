@@ -1,0 +1,160 @@
+---
+title: "Fish Project Data Analysis"
+author: "Ze Qian Wu (1002192254)"
+date: "January 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+fd <- read.csv("/Users/Claire/Desktop/490 Fish Project/sta490_fish_analysis/CleanData_scripted.csv")
+attach(fd)
+library(tidyverse)
+library(corrplot)
+library(dplyr)
+library(forcats)
+```
+
+
+```{r}
+e01 <- lm(log(fd$Energy1) ~ fd$RWT +fd$Season_fac)
+e11 <- lm(log(fd$Energy1) ~ fd$FLEN +fd$Season_fac)
+e12 <- lm(log(fd$Energy1)~ fd$Cndtn +fd$Season_fac)
+e13 <- lm(log(fd$Energy1)~ fd$HepSI +fd$Season_fac)
+e14 <- lm(log(fd$Energy1)~ fd$GSI +fd$Season_fac)
+
+e20 <- lm(fd$Energy2~ fd$FLEN+ fd$Season_fac)
+e21 <- lm(fd$Energy2~ fd$RWT +fd$Season_fac)
+e22 <- lm(fd$Energy2~ fd$Cndtn +fd$Season_fac)
+e23 <- lm(fd$Energy2~ fd$HepSI +fd$Season_fac)
+e24 <- lm(fd$Energy2~ fd$GSI +fd$Season_fac)
+
+```
+
+
+```{r}
+fd$Season_fac = fct_relevel(Season_fac,"Spring", "Summer","Fall","Winter")
+fd$Predict1 <- predict.lm(e20, newdata = fd)
+ggplot(data=fd, mapping= aes(x=FLEN, y=Energy2)) +
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+
+```
+```{r}
+fd$Predict2 <- predict.lm(e21, newdata = fd)
+ggplot(data=fd, mapping= aes(x=RWT, y=Energy2)) +
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+
+
+```
+
+
+
+
+
+
+```{r}
+fd$Predict2 <- predict.lm(e12, newdata = fd)
+ggplot(data=fd, mapping= aes(x=Cndtn, y=log(Energy1))) +
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() +
+  geom_smooth(mapping = aes(y = fd$Predict))
+```
+
+
+```{r}
+matrix1 <- cor(fd[c(8,9,28,29,30,31,32)],use="complete.obs")
+
+corrplot1 =corrplot(cor(matrix1),method="circle",order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+corrplot2 =corrplot(cor(matrix1),method="number",order = "hclust",
+                    tl.col="black",tl.srt=45, type="lower")
+```
+
+```{r}
+fd <- as.tibble(fd)
+by_species_season <- fd %>%
+  group_by(Species, Season_fac) %>%
+  nest()
+
+corfunc <- function(df) {
+  as.matrix(cor(df %>% select_if(is.numeric(.)),use="complete.obs"))
+}
+
+by_species_season <- by_species_season %>%
+  mutate(corrmax = map(data, corfunc))
+
+matrix1 <- cor(fd[c(8,9,28,29,30,31,32)],use="complete.obs")
+
+corrplot3 =corrplot(cor(matrix1),method="circle",order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+corrplot4 =corrplot(cor(matrix1),method="number",order = "hclust",
+                    tl.col="black",tl.srt=45, type="lower")
+```
+
+
+```{r}
+fd$Sex <- as_factor(fd$Sex)
+model1 <- lm(fd$Energy1 ~ fd$Sex)
+plot(model1)
+summary(model1)
+model2 <- lm(fd$Energy2 ~ fd$Sex)
+plot(model2)
+summary(model2)
+model3 <- lm(fd$HepSI ~ fd$Sex)
+plot(model3)
+summary(model3)
+model4 <- lm(fd$GSI ~ fd$Sex)
+plot(model4)
+summary(model4)
+
+
+```
+
+```{r}
+means1 <-aggregate(fd$Energy1~fd$Sex, fd, mean)
+
+
+ggplot(data=fd, mapping= aes(x=Sex, y=log(Energy1))) +
+  geom_point() +
+  facet_grid(.~Season_fac) +
+  theme_minimal() 
+
+```
+
+
+
+
+```{r}
+model21 <- lm(fd$SexMat ~ fd$Energy1)
+plot(model21)
+summary(model21)
+model22 <- lm(fd$SexMat ~ fd$Energy2)
+plot(model22)
+summary(model22)
+model23 <- lm(fd$SexMat ~ fd$HepSI)
+plot(model23)
+summary(model23)
+model24 <- lm(fd$SexMat ~ fd$GSI)
+plot(model24)
+summary(model24)
+
+```
+
+```{r}
+
+matrix2 <- cor(fd[c(25,28,29,31,32)],use="complete.obs")
+
+corrplot3 =corrplot(cor(matrix2),method="circle",order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+corrplot4 =corrplot(cor(matrix2),method="number",order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+```
+
