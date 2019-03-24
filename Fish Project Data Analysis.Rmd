@@ -1,6 +1,6 @@
 ---
 title: "Fish Project Data Analysis"
-author: "Ze Qian Wu (1002192254)"
+
 date: "January 19, 2019"
 output: html_document
 ---
