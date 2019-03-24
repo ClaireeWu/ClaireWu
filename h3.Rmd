@@ -1,0 +1,59 @@
+---
+title: 'Homework 3'
+author: "Ze Qian Wu (1002192254)"
+date: "March 16, 2019"
+output: pdf_document
+
+---
+
+## Question 1,    
+
+### 1
+
+**Proof:**     
+when F=G, then $\mu_F=\mu_G$  
+$S(F(x),G)=E_{y\sim{G}}(y-\mu_F)^2+\sigma^2_F=2\sigma^2_G$.     
+when $F\ne{}G$, $2\sigma^2_F=\sigma^2_G$, 
+$\mu_F=\mu_G$  
+$S(F(x),G)=E_{y\sim{G}}(y-\mu_G+\mu_G-\mu_F)^2+\sigma^2_F=\sigma^2_G+(\mu_G-\mu_F)^2+\sigma^2_F=1.5\sigma^2_G<2\sigma^2_G$.    
+Hence, the $S(F(x),G)$ is not minimized by $F=G$, therefore it is NOT a proper scoring rule.      
+
+### 2
+
+**Proof:**   
+
+\[\begin{aligned}S(F(x),G)&=\frac{E_{y\sim{G}}(y-\mu_F)^2}{\sigma^2_F}+log(\sigma^2_F)\\
+&=\frac{E_{y\sim{G}}(y-\mu_G+\mu_G-\mu_F)^2}{\sigma^2_F}+log(\sigma^2_F)\\
+&=\frac{\sigma^2_G+(\mu_G-\mu_F)^2}{\sigma^2_F}+log(\sigma^2_F)\end{aligned}\tag{2.1}\]
+then,    
+\[\begin{aligned}\frac{\partial{}S(F(x),G)}{\partial{\mu_F}}&=\frac{-2(\mu_G-\mu_F)}{\sigma^2_F}=0\Rightarrow{\mu_G=\mu_F}\\
+\frac{\partial{}S(F(x),G)}{\partial{\sigma^2_F}}&=-\frac{\sigma^2_G}{\sigma^4_F}+\frac{1}{\sigma^2_F}=0\Rightarrow{\sigma^2_G=\sigma^2_F}
+\end{aligned}\tag{2.2}\]
+When F=G, $\mu_F=\mu_G$ and $\sigma^2_G=\sigma^2_F$,  $S(F(x),G)$ is minimised. 
+Hence, it is a proper scoring rule.    
+
+### 3
+
+**Proof:**       
+
+\[\begin{aligned}&\text{Set }D(x)=\begin{cases}-F(x)&G(x)<\frac{1}{2}\\1-F(x)&G(x)\ge\frac{1}{2}\end{cases}\\
+&\text{ if }0<\epsilon\le1, 
+\begin{cases}\lim_{x\to-\infty}F(x)+\epsilon{D(x)}=0\\
+\lim_{x\to+\infty}F(x)+\epsilon{D(x)}=1\\
+(F(x)+\epsilon{D(x)})^{'}=(1-\epsilon)f(x)\ge0\end{cases}\end{aligned}\tag{3.1}\]
+
+Hence, $F(x)+\epsilon{D(x)}$ is still a CDF and we have     
+
+\[\begin{aligned}\frac{dS(F(x)+\epsilon{D(x)},G)}{d\epsilon}&=\frac{dE_{y\sim{G}}[\int_{R}|F(x)+\epsilon{D(x)}-H(x-y)|dx]}{d\epsilon}\\
+&=\frac{dE_{y\sim{G}}[\int_{-\infty}^y|F(x)+\epsilon{D(x)}|dx]+E_{y\sim{G}}[\int^{+\infty}_y|F(x)+\epsilon{D(x)}-1|dx]}{d\epsilon}\\
+&=\frac{dE_{y\sim{G}}[\int_{-\infty}^yF(x)+\epsilon{D(x)}dx]+E_{y\sim{G}}[\int^{+\infty}_y1-F(x)-\epsilon{D(x)}dx]}{d\epsilon}\\
+&=E_{y\sim{G}}[\int_{-\infty}^y{D(x)}dx]-E_{y\sim{G}}[\int^{+\infty}_y{D(x)}dx]\\
+&=\int_R(g(y)\int_{-\infty}^y{D(x)}dx)dy-\int_R(g(y)\int^{+\infty}_y{D(x)}dx)dy\\
+&=\int_RD(x)(\int_x^{+\infty}{g(y)}dy)dx-\int_RD(x)(\int_{-\infty}^x{g(y)}dy)dx\\
+&=\int_RD(x)(1-2G(x))dx\\
+\because{}D(x)(1-2G(x))\le0&\text{ ,and }D(x)(1-2G(x))\not{\equiv}0\\
+\therefore\frac{dS(F(x)+\epsilon{D(x)},G)}{d\epsilon}&<0\text{ where, }(0<\epsilon\le1)\end{aligned}\tag{3.2}\]
+Then, $S(H(G(x)-\frac{1}{2}),G)=S(F(x)+1*{D(x)},G)<S(F(x)+0*{D(x)},G)=S(F(x),G)$, and
+$S(F(x),G)$ is minimized by $F(x)=H(G(x)-\frac{1}{2})$ instead of $F(x)=G(x)$. 
+Hence, it is NOT a proper scoring rule.      
+
