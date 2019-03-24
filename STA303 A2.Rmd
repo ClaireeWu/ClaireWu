@@ -1,6 +1,6 @@
 ---
 title: "STA303 A1"
-author: "Ze Qian Wu (1002192254)"
+
 date: "February 8, 2018"
 output:
   word_document: default
