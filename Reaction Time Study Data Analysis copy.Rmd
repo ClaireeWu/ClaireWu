@@ -1,6 +1,6 @@
 ---
 title: "Reaction Time Study Data Analysis"
-author: "Ze Qian Wu (1002192254)"
+
 date: "October 23, 2018"
 output: pdf_document
 ---
