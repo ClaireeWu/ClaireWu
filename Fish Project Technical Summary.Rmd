@@ -1,0 +1,207 @@
+---
+title: "Fish Project Data Analysis"
+author: "Ze Qian Wu (1002192254)"
+date: "January 19, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, include=FALSE}
+fd <- read.csv("/Users/Claire/Desktop/490 Fish Project/sta490_fish_analysis/CleanData_scripted.csv")
+
+attach(fd)
+library(tidyverse)
+library(corrplot)
+library(dplyr)
+library(forcats)
+
+```
+
+RQ1:Across all seasons, how does energy concentration (Energy1 and Energy2) correlate with body size, body condition, and the organ indices?
+
+RQ2:How does sex and/or maturity influence energy concentration or organ indices?
+
+
+To explore the research questions based on the data we acquired, it would be more straight forward if we look at the two research questions together and analyze the potential correlation between the energy concentration (Energy1 and Energy2) and all the other biological indicators (body size, body condition, organ indices sex and maturity). As biological indicators cannot have an impact on energy concentration, correlation plots and some linear models will be used to examine the correlation between all the variables. The dataset that we are using in this study was collected from a lake in Algonquin, Canada thoughout a year with various fishing methods and two types of fish were caught, Smallmouth Bass and Lake Trout.
+
+Considering that the sample size n=129 is small and biased due to all the samples are from the same lake, it is difficult to conduct complex models to the dataset therefore we are mainly interested in exploring the existing correlation and see if all the results are consistent throughout all the seasons.
+
+
+##RQ1
+```{r echo=FALSE, include=FALSE}
+par(mfrow=c(2,2))
+#basic linear models 
+Energy1 <- log(fd$Energy1)
+Energy2 <- fd$Energy2
+
+e10 <- lm(Energy1 ~ fd$RWT +fd$Season_fac)
+e11 <- lm(Energy1 ~ fd$FLEN +fd$Season_fac)
+e12 <- lm(Energy1~ fd$Cndtn +fd$Season_fac)
+e13 <- lm(Energy1~ fd$HepSI +fd$Season_fac)
+e14 <- lm(Energy1~ fd$GSI +fd$Season_fac)
+
+e20 <- lm(Energy2~ fd$FLEN+ fd$Season_fac)
+e21 <- lm(Energy2~ fd$RWT +fd$Season_fac)
+e22 <- lm(Energy2~ fd$Cndtn +fd$Season_fac)
+e23 <- lm(Energy2~ fd$HepSI +fd$Season_fac)
+e24 <- lm(Energy2~ fd$GSI +fd$Season_fac)
+plot(e10)
+plot(e11)
+plot(e12)
+plot(e14)
+plot(e20)
+plot(e21)
+plot(e22)
+plot(e23)
+plot(e24)
+#all qqplots appear to be normal
+```
+
+```{r}
+par(mfrow=c(2,2))
+matrix1 <- cor(fd[c(8,9,28,29,30,31,32)],use="complete.obs")
+
+corrplot1 =corrplot(cor(matrix1),method="circle",order = "hclust",
+                    tl.col="black",tl.srt=45, type="upper")
+corrplot2 =corrplot(cor(matrix1),method="number",order = "hclust",
+                    tl.col="black",tl.srt=45, type="lower")
+
+
+```
+
+The correlation plot indicates that there exists a relatively stronger correlation between 
+1) Energy 2 and FLEN (negative correlation r= -0.81) 
+2) Energy 2 and RWT (negative correlation r= -0.83)
+
+Energy 1 has a relatively week correlation between any biological indicators.
+
+
+```{r}
+fd$Season_fac = fct_relevel(Season_fac,"Spring", "Summer","Fall","Winter")
+#separating all the fish by season
+
+ggplot(data=fd, mapping= aes(x=FLEN, y=Energy2)) +
+  geom_smooth(method = "lm", se = FALSE)+
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+
+
+data_new <- split(fd, fd$Species)
+ggplot(data= data_new$LT, mapping= aes(x=FLEN, y=Energy2)) +
+  geom_smooth(method = "lm", se = FALSE)+
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+ggplot(data=data_new$SMB, mapping= aes(x=FLEN, y=Energy2)) +
+  geom_smooth(method = "lm", se = FALSE)+
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+
+
+```
+```{r}
+
+ggplot(data=fd, mapping= aes(x=RWT, y=Energy2)) +
+  geom_smooth(method = "lm", se = FALSE)+
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+
+
+data_new <- split(fd, fd$Species)
+ggplot(data= data_new$LT, mapping= aes(x=RWT, y=Energy2)) +
+  geom_smooth(method = "lm", se = FALSE)+
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+ggplot(data=data_new$SMB, mapping= aes(x=RWT, y=Energy2)) +
+  geom_smooth(method = "lm", se = FALSE)+
+  geom_point() +
+  facet_wrap(Season_fac~.) +
+  theme_minimal() 
+
+
+```
+
+
+The ggplots above show a consistent result as the correlation matrix. However, we are still interested in exploring any potential correlation with Energy 1 instead of Energy 2.
+
+##RQ2:
+
+```{r}
+
+
+ggplot(data=fd, mapping= aes(x=Sex, y=log(Energy1))) +
+  geom_boxplot() +
+  facet_grid(.~Season_fac) +
+  stat_summary(fun.y=mean, geom="point", color ="red", fill="red")+
+  theme_minimal()
+
+ggplot(data=fd, mapping= aes(x=Sex, y=log(Energy2))) +
+  geom_boxplot() +
+  facet_grid(.~Season_fac) +
+  stat_summary(fun.y=mean, geom="point", color ="red", fill="red")+
+  theme_minimal()
+
+ggplot(data=data_new$LT, mapping= aes(x=Sex, y=log(Energy2))) +
+  geom_boxplot() +
+  facet_grid(.~Season_fac) +
+  stat_summary(fun.y=mean, geom="point", color ="red", fill="red")+
+  theme_minimal()
+
+ggplot(data=data_new$SMB, mapping= aes(x=Sex, y=log(Energy2))) +
+  geom_boxplot() +
+  facet_grid(.~Season_fac) +
+  stat_summary(fun.y=mean, geom="point", color ="red", fill="red")+
+  theme_minimal()
+
+
+
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+model21 <- lm(fd$SexMat ~ Energy1)
+plot(model21)
+model22 <- lm(fd$SexMat ~ Energy2)
+plot(model22)
+model23 <- lm(fd$SexMat ~ fd$HepSI)
+plot(model23)
+model24 <- lm(fd$SexMat ~ fd$GSI)
+plot(model24)
+
+
+```
+
+
+```{r}
+gm <- glm(Energy1 ~ fd$HepSI+  fd$Cndtn +fd$FLEN + fd$RWT,
+  data = fd,
+  family = Gamma(link = "inverse"))
+summary(gm)
+
+
+gm1 <- glm(Energy1 ~ fd$Season_fac + fd$HepSI,
+  data = fd,
+  family = Gamma(link = "inverse"))
+summary(gm1)
+
+gm2 <- glm(Energy1 ~ fd$Season_fac + fd$Cndtn,
+  data = fd,
+  family = Gamma(link = "inverse"))
+summary(gm2)
+
+```
+
+The gamma regression presented significant results for HSI and body condition factor.
+
+
+
