@@ -1,6 +1,5 @@
 ---
-title: 'Homework 3'
-author: "Ze Qian Wu (1002192254)"
+
 date: "March 16, 2019"
 output: pdf_document
 
